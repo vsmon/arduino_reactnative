@@ -7,7 +7,7 @@ export const Container = styled.View`
   padding: 0 30px;
 `;
 
-export const TempText = styled.Text`
+export const MeasureText = styled.Text`
   font-size: 36px;
   color: #0066ff;
   justify-content: flex-start;
