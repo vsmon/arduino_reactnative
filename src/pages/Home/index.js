@@ -15,34 +15,133 @@ import * as shape from 'd3-shape';
 import {Container, MeasureText} from './styles';
 
 import api from '../../services/api';
+import axios from 'axios';
 
 export default function Home({navigation}) {
+  const [address, setAddress] = useState('http://192.168.0.40:3001');
   const [measures, setMeasures] = useState([]);
   const [newMeasures, setNewMeasures] = useState([]);
-  const [temperature, setTemperature] = useState([]);
-  const [humidity, setHumidity] = useState([]);
-  const [pressure, setPressure] = useState([]);
-  const [altitude, setAltitude] = useState([]);
+  const [temperature, setTemperature] = useState([
+    /* 10,
+    5,
+    8,
+    30,
+    15,
+    9,
+    50,
+    45,
+    44,
+    41, */
+  ]);
+  const [humidity, setHumidity] = useState([
+    10,
+    5,
+    8,
+    30,
+    15,
+    9,
+    50,
+    45,
+    44,
+    41,
+  ]);
+  const [pressure, setPressure] = useState([
+    10,
+    5,
+    8,
+    30,
+    15,
+    9,
+    50,
+    45,
+    44,
+    41,
+  ]);
+  const [altitude, setAltitude] = useState([
+    10,
+    5,
+    8,
+    30,
+    15,
+    9,
+    50,
+    45,
+    44,
+    41,
+  ]);
 
   useEffect(() => {
     fetchData();
+    getData();
   }, []);
 
-  async function fetchData() {
-    const response = await api.get('data');
-    setNewMeasures(response.data);
+  async function clear() {
+    await AsyncStorage.removeItem('data');
   }
+  async function fetchData() {
+    try {
+      storeData();
+      const res = await AsyncStorage.getItem('address');
+
+      const url = JSON.parse(res);
+
+      const response = await api.get(`data`, {baseURL: url});
+
+      setNewMeasures(response.data);
+
+      let data = await AsyncStorage.getItem('data');
+      data = JSON.parse(data);
+
+      data.map(item => {
+        setTemperature([...temperature, item.temperature]);
+      });
+    } catch (error) {
+      alert(error);
+    }
+  }
+  async function getData() {
+    try {
+      let data = await AsyncStorage.getItem('data');
+      data = JSON.parse(data);
+      data.map(item => {
+        setTemperature([...temperature, item.temperature]);
+      });
+    } catch (error) {}
+  }
+  async function storeData() {
+    try {
+      let data = await AsyncStorage.getItem('data');
+      if (!data) {
+        await AsyncStorage.setItem('data', JSON.stringify(newMeasures));
+        return;
+      } else {
+        data = JSON.parse(data);
+        console.log(data);
+        setMeasures([...measures, data]);
+        await AsyncStorage.setItem('data', JSON.stringify(measures));
+      }
+
+      /* data.map(item => {
+        setTemperature([...temperature, item.temperature]);
+      }); */
+    } catch (error) {
+      alert(error);
+    }
+  }
+
   async function handleRefresh() {
     fetchData();
   }
 
   return (
     <Container>
-      {/* <Button title="Atualizar" onPress={handleRefresh} /> 
+      <Button title="Limpar Dados asyncstorage" onPress={clear} />
+      <Button title="Salvar Dados asyncstorage" onPress={storeData} />
+      <Button title="Atualizar" onPress={handleRefresh} />
       <Button
         title="Settings"
         onPress={() => navigation.navigate('Configuration')}
-      />*/}
+      />
       {
         <ScrollView
           showsVerticalScrollIndicator={false}
