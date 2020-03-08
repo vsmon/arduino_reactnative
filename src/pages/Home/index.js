@@ -8,136 +8,120 @@ import {
   RefreshControl,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import {LineChart, AreaChart, Grid, YAxis} from 'react-native-svg-charts';
+import {
+  LineChart,
+  AreaChart,
+  Grid,
+  YAxis,
+  XAxis,
+} from 'react-native-svg-charts';
 import AsyncStorage from '@react-native-community/async-storage';
 import * as shape from 'd3-shape';
+import {format} from 'date-fns';
 
 import {Container, MeasureText} from './styles';
 
 import api from '../../services/api';
 import axios from 'axios';
+import Realm from '../../schemas';
 
 export default function Home({navigation}) {
   const [address, setAddress] = useState('http://192.168.0.40:3001');
   const [measures, setMeasures] = useState([]);
   const [newMeasures, setNewMeasures] = useState([]);
-  const [temperature, setTemperature] = useState([
-    /* 10,
-    5,
-    8,
-    30,
-    15,
-    9,
-    50,
-    45,
-    44,
-    41, */
-  ]);
-  const [humidity, setHumidity] = useState([
-    10,
-    5,
-    8,
-    30,
-    15,
-    9,
-    50,
-    45,
-    44,
-    41,
-  ]);
-  const [pressure, setPressure] = useState([
-    10,
-    5,
-    8,
-    30,
-    15,
-    9,
-    50,
-    45,
-    44,
-    41,
-  ]);
-  const [altitude, setAltitude] = useState([
-    10,
-    5,
-    8,
-    30,
-    15,
-    9,
-    50,
-    45,
-    44,
-    41,
-  ]);
+  const [temperature, setTemperature] = useState([]);
+  const [humidity, setHumidity] = useState([]);
+  const [pressure, setPressure] = useState([]);
+  const [altitude, setAltitude] = useState([]);
+  const [date, setDate] = useState([]);
 
   useEffect(() => {
+    loadData();
     fetchData();
-    getData();
   }, []);
 
-  async function clear() {
-    await AsyncStorage.removeItem('data');
-  }
   async function fetchData() {
     try {
-      storeData();
-      const res = await AsyncStorage.getItem('address');
-
-      const url = JSON.parse(res);
+      const config = await Realm.objects('Config');
+      let url = '';
+      config.map(item => {
+        url = item.url;
+      });
 
       const response = await api.get(`data`, {baseURL: url});
 
       setNewMeasures(response.data);
-
-      let data = await AsyncStorage.getItem('data');
-      data = JSON.parse(data);
-
-      data.map(item => {
-        setTemperature([...temperature, item.temperature]);
+    } catch (error) {
+      alert(error);
+    }
+  }
+  async function saveData({temperature, humidity, pressure, altitude}) {
+    try {
+      await Realm.write(async () => {
+        await Realm.create('Data', {
+          id: Realm.objects('Data').length + 1,
+          temperature,
+          humidity,
+          pressure,
+          altitude,
+          date: new Date(),
+        });
       });
     } catch (error) {
       alert(error);
     }
   }
-  async function getData() {
+  async function loadData() {
     try {
-      let data = await AsyncStorage.getItem('data');
-      data = JSON.parse(data);
-      data.map(item => {
-        setTemperature([...temperature, item.temperature]);
-      });
-    } catch (error) {}
-  }
-  async function storeData() {
-    try {
-      let data = await AsyncStorage.getItem('data');
+      const data = await Realm.objects('Data');
+      let listTemp = [];
+      let listHum = [];
+      let listPress = [];
+      let listAlti = [];
+      let listDate = [];
       if (!data) {
-        await AsyncStorage.setItem('data', JSON.stringify(newMeasures));
-        return;
+        listTemp.push(newMeasures.temperature);
+        listHum.push(newMeasures.humidity);
+        listPress.push(newMeasures.pressure);
+        listAlti.push(newMeasures.altitude);
+        listDate.push(new Date());
       } else {
-        data = JSON.parse(data);
-        console.log(data);
-        setMeasures([...measures, data]);
-        await AsyncStorage.setItem('data', JSON.stringify(measures));
+        data.map(item => {
+          listTemp.push(item.temperature);
+          listHum.push(item.humidity);
+          listPress.push(item.pressure);
+          listAlti.push(item.altitude);
+          listDate.push(format(item.date, 'dd/MM/yyyy'));
+        });
       }
-
-      /* data.map(item => {
-        setTemperature([...temperature, item.temperature]);
-      }); */
+      setTemperature(listTemp);
+      setHumidity(listHum);
+      setPressure(listPress);
+      setAltitude(listAlti);
+      setDate(listDate);
+      console.log(listDate);
     } catch (error) {
       alert(error);
     }
+  }
+
+  async function clear() {
+    const data = await Realm.objects('Data');
+    await Realm.write(async () => {
+      await Realm.delete(data);
+    });
   }
 
   async function handleRefresh() {
     fetchData();
+    saveData(newMeasures);
+    loadData();
   }
 
   return (
     <Container>
-      <Button title="Limpar Dados asyncstorage" onPress={clear} />
-      <Button title="Salvar Dados asyncstorage" onPress={storeData} />
-      <Button title="Atualizar" onPress={handleRefresh} />
+      <Button title="Clear" onPress={clear} />
+      {/* <Button title="Refresh" onPress={handleRefresh} /> */}
       <Button
         title="Settings"
         onPress={() => navigation.navigate('Configuration')}
@@ -169,6 +153,14 @@ export default function Home({navigation}) {
                 <Grid />
               </LineChart>
             </View>
+            {/*  <XAxis
+              style={{marginHorizontal: -10}}
+              data={date}
+              formatLabel={(value, index) => value}
+              contentInset={{left: 10, right: 20}}
+              svg={{fontSize: 10, fill: 'black'}}
+              numberOfTicks={10}
+            /> */}
 
             <MeasureText>Humidity: {newMeasures.humidity}%</MeasureText>
             <View style={{height: 200, flexDirection: 'row'}}>
