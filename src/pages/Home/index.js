@@ -6,6 +6,8 @@ import {
   FlatList,
   ScrollView,
   RefreshControl,
+  TouchableOpacity,
+  Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {
@@ -15,7 +17,6 @@ import {
   YAxis,
   XAxis,
 } from 'react-native-svg-charts';
-import AsyncStorage from '@react-native-community/async-storage';
 import * as shape from 'd3-shape';
 import {format} from 'date-fns';
 
@@ -99,17 +100,40 @@ export default function Home({navigation}) {
       setPressure(listPress);
       setAltitude(listAlti);
       setDate(listDate);
-      console.log(listDate);
     } catch (error) {
       alert(error);
     }
   }
-
+  async function handleClear() {
+    try {
+      const data = await Realm.objects('Data');
+      await Realm.write(async () => {
+        await Realm.delete(data);
+      });
+    } catch (error) {
+      alert(error);
+    }
+  }
   async function clear() {
-    const data = await Realm.objects('Data');
-    await Realm.write(async () => {
-      await Realm.delete(data);
-    });
+    Alert.alert(
+      'Excluir todos os registros',
+      'Deseja excluir todos os registros?',
+      [
+        {
+          text: 'OK',
+          onPress: () => {
+            handleClear();
+            handleRefresh();
+          },
+          style: 'ok',
+        },
+        {
+          text: 'CANCELAR',
+          onPress: () => {},
+          style: 'cancel',
+        },
+      ],
+    );
   }
 
   async function handleRefresh() {
@@ -120,12 +144,15 @@ export default function Home({navigation}) {
 
   return (
     <Container>
-      <Button title="Clear" onPress={clear} />
-      {/* <Button title="Refresh" onPress={handleRefresh} /> */}
-      <Button
-        title="Settings"
-        onPress={() => navigation.navigate('Configuration')}
-      />
+      <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+        <TouchableOpacity onPress={clear}>
+          <Icon name="delete-sweep" size={40} color="blue" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('Configuration')}>
+          <Icon name="settings" size={40} color="blue" />
+        </TouchableOpacity>
+      </View>
+
       {
         <ScrollView
           showsVerticalScrollIndicator={false}

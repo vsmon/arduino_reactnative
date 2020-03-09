@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from 'react';
-import {View, Text, Button, TextInput, FlatList} from 'react-native';
+import {View, Text, Button, TextInput, TouchableOpacity} from 'react-native';
 import Realm from '../../schemas';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 export default function Configuration({navigation}) {
   const [address, setAddress] = useState('');
@@ -11,7 +12,9 @@ export default function Configuration({navigation}) {
   async function loadConfig() {
     try {
       const config = await Realm.objects('Config');
-      setAddress(config[0].url);
+      if (config) {
+        setAddress(config[0].url);
+      }
     } catch (error) {
       alert(error);
     }
@@ -35,38 +38,32 @@ export default function Configuration({navigation}) {
       alert(error);
     }
   }
-  async function loadData() {
-    try {
-      const data = await Realm.objects('Data');
-      data.map(item => {
-        console.log(item);
-        setData([...data, item.temperature]);
-      });
-    } catch (error) {
-      alert(error);
-    }
-  }
 
   return (
     <View>
-      <Text>Settings</Text>
-      <Text>Server Address</Text>
-      <TextInput
-        style={{backgroundColor: '#FFF8', height: 50}}
-        onChangeText={text => setAddress(text)}
-        value={address}
-      />
-      <Button title="Salvar" onPress={handleAddAddress} />
-      <Button title="Voltar" onPress={() => navigation.navigate('Home')} />
-      <FlatList
-        data={data}
-        renderItem={({item}) => (
-          <Text>
-            {item.id} - {item.temperature}
-          </Text>
-        )}
-        keyExtractor={item => toString(item.id)}
-      />
+      <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+        <Icon name="arrow-back" size={40} color="blue" />
+      </TouchableOpacity>
+      <View style={{alignItems: 'center'}}>
+        <Text>Settings</Text>
+      </View>
+      <View style={{flexDirection: 'row', padding: 10, alignItems: 'center'}}>
+        <Text>Url: </Text>
+        <TextInput
+          style={{
+            padding: 10,
+            flex: 1,
+            backgroundColor: '#FFF',
+            height: 50,
+            borderRadius: 5,
+          }}
+          onChangeText={text => setAddress(text)}
+          value={address}
+        />
+        <TouchableOpacity onPress={handleAddAddress}>
+          <Icon name="save" size={42} color="blue" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
