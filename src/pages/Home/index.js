@@ -18,7 +18,8 @@ import {
   XAxis,
 } from 'react-native-svg-charts';
 import * as shape from 'd3-shape';
-import {format} from 'date-fns';
+import {format, getSeconds} from 'date-fns';
+import {Svg} from 'react-native-svg';
 
 import {Container, MeasureText} from './styles';
 
@@ -35,31 +36,36 @@ export default function Home({navigation}) {
   const [pressure, setPressure] = useState([]);
   const [altitude, setAltitude] = useState([]);
   const [date, setDate] = useState([]);
+  const [refresh, setRefresh] = useState(false);
 
   useEffect(() => {
-    loadData();
     fetchData();
+    loadData();
   }, []);
 
   async function fetchData() {
     try {
+      setRefresh(true);
       const config = await Realm.objects('Config');
       let url = '';
-      config.map(item => {
+      config.map((item) => {
         url = item.url;
       });
 
       const response = await api.get(`data`, {baseURL: url});
 
       setNewMeasures(response.data);
+
+      saveData(response.data);
+      setRefresh(false);
     } catch (error) {
       alert(error);
     }
   }
   async function saveData({temperature, humidity, pressure, altitude}) {
     try {
-      await Realm.write(async () => {
-        await Realm.create('Data', {
+      Realm.write(async () => {
+        Realm.create('Data', {
           id: Realm.objects('Data').length + 1,
           temperature,
           humidity,
@@ -74,41 +80,36 @@ export default function Home({navigation}) {
   }
   async function loadData() {
     try {
-      const data = await Realm.objects('Data');
-      let listTemp = [];
-      let listHum = [];
-      let listPress = [];
-      let listAlti = [];
-      let listDate = [];
-      if (!data) {
-        listTemp.push(newMeasures.temperature);
-        listHum.push(newMeasures.humidity);
-        listPress.push(newMeasures.pressure);
-        listAlti.push(newMeasures.altitude);
-        listDate.push(new Date());
-      } else {
-        data.map(item => {
-          listTemp.push(item.temperature);
-          listHum.push(item.humidity);
-          listPress.push(item.pressure);
-          listAlti.push(item.altitude);
-          listDate.push(format(item.date, 'dd/MM/yyyy'));
-        });
-      }
-      setTemperature(listTemp);
-      setHumidity(listHum);
-      setPressure(listPress);
-      setAltitude(listAlti);
-      setDate(listDate);
+      let temperature = [];
+      let humidity = [];
+      let pressure = [];
+      let altitude = [];
+      let date = [];
+      setRefresh(true);
+      const data = Realm.objects('Data');
+      data.map((item) => {
+        temperature.push(item.temperature);
+        humidity.push(item.humidity);
+        pressure.push(item.pressure);
+        altitude.push(item.altitude);
+        date.push(item.date.getHours());
+      });
+      setTemperature(temperature);
+      setHumidity(humidity);
+      setPressure(pressure);
+      setAltitude(altitude);
+      setDate(date);
+      setRefresh(false);
     } catch (error) {
       alert(error);
     }
   }
+
   async function handleClear() {
     try {
-      const data = await Realm.objects('Data');
-      await Realm.write(async () => {
-        await Realm.delete(data);
+      const data = Realm.objects('Data');
+      Realm.write(async () => {
+        Realm.delete(data);
       });
     } catch (error) {
       alert(error);
@@ -138,7 +139,6 @@ export default function Home({navigation}) {
 
   async function handleRefresh() {
     fetchData();
-    saveData(newMeasures);
     loadData();
   }
 
@@ -146,10 +146,10 @@ export default function Home({navigation}) {
     <Container>
       <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
         <TouchableOpacity onPress={clear}>
-          <Icon name="delete-sweep" size={40} color="blue" />
+          <Icon name="delete-sweep" size={35} color="blue" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Configuration')}>
-          <Icon name="settings" size={40} color="blue" />
+          <Icon name="settings" size={35} color="blue" />
         </TouchableOpacity>
       </View>
 
@@ -157,7 +157,7 @@ export default function Home({navigation}) {
         <ScrollView
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl refreshing={false} onRefresh={handleRefresh} />
+            <RefreshControl refreshing={refresh} onRefresh={handleRefresh} />
           }>
           <View>
             <MeasureText>{newMeasures.temperature}ºC</MeasureText>
@@ -170,22 +170,28 @@ export default function Home({navigation}) {
                   fontSize: 10,
                 }}
                 numberOfTicks={10}
-                formatLabel={value => `${value}ºC`}
+                formatLabel={(value) => `${value}ºC`}
               />
               <LineChart
                 style={{flex: 1, marginLeft: 16}}
                 data={temperature}
-                svg={{stroke: 'rgb(134, 65, 244)'}}
+                svg={{
+                  stroke: 'rgb(255, 255, 0)',
+                }}
                 contentInset={{top: 20, bottom: 20}}>
-                <Grid />
+                <Grid
+                  svg={{
+                    stroke: 'gray',
+                  }}
+                />
               </LineChart>
             </View>
-            {/*  <XAxis
-              style={{marginHorizontal: -10}}
+            {/* <XAxis
+              style={{marginHorizontal: 50}}
               data={date}
-              formatLabel={(value, index) => value}
-              contentInset={{left: 10, right: 20}}
-              svg={{fontSize: 10, fill: 'black'}}
+              formatLabel={(value, index) => index}
+              contentInset={{left: 10, right: 0}}
+              svg={{fontSize: 15, fill: 'black'}}
               numberOfTicks={10}
             /> */}
 
@@ -199,14 +205,18 @@ export default function Home({navigation}) {
                   fontSize: 10,
                 }}
                 numberOfTicks={10}
-                formatLabel={value => `${value}%`}
+                formatLabel={(value) => `${value}%`}
               />
               <LineChart
                 style={{flex: 1, marginLeft: 16}}
                 data={humidity}
-                svg={{stroke: 'rgb(134, 65, 244)'}}
+                svg={{stroke: 'rgb(0, 255, 0)'}}
                 contentInset={{top: 20, bottom: 20}}>
-                <Grid />
+                <Grid
+                  svg={{
+                    stroke: 'gray',
+                  }}
+                />
               </LineChart>
             </View>
 
@@ -220,14 +230,18 @@ export default function Home({navigation}) {
                   fontSize: 10,
                 }}
                 numberOfTicks={10}
-                formatLabel={value => `${value}hPa`}
+                formatLabel={(value) => `${value}hPa`}
               />
               <LineChart
                 style={{flex: 1, marginLeft: 16}}
                 data={pressure}
-                svg={{stroke: 'rgb(134, 65, 244)'}}
+                svg={{stroke: 'rgb(255, 0, 0)'}}
                 contentInset={{top: 20, bottom: 20}}>
-                <Grid />
+                <Grid
+                  svg={{
+                    stroke: 'gray',
+                  }}
+                />
               </LineChart>
             </View>
 
@@ -241,14 +255,18 @@ export default function Home({navigation}) {
                   fontSize: 10,
                 }}
                 numberOfTicks={10}
-                formatLabel={value => `${value}Mts`}
+                formatLabel={(value) => `${value}Mts`}
               />
               <LineChart
                 style={{flex: 1, marginLeft: 16}}
                 data={altitude}
-                svg={{stroke: 'rgb(134, 65, 244)'}}
+                svg={{stroke: 'rgb(255, 153, 51)'}}
                 contentInset={{top: 20, bottom: 20}}>
-                <Grid />
+                <Grid
+                  svg={{
+                    stroke: 'gray',
+                  }}
+                />
               </LineChart>
             </View>
           </View>
