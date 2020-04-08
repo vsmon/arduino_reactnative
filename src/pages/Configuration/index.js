@@ -40,28 +40,28 @@ export default function Configuration({navigation}) {
   }
 
   return (
-    <View>
+    <View style={{backgroundColor: '#000', flex: 1}}>
       <TouchableOpacity onPress={() => navigation.navigate('Home')}>
         <Icon name="arrow-back" size={40} color="blue" />
       </TouchableOpacity>
       <View style={{alignItems: 'center'}}>
-        <Text>Settings</Text>
+        <Text style={{color: '#FFF'}}>Settings</Text>
       </View>
       <View style={{flexDirection: 'row', padding: 10, alignItems: 'center'}}>
-        <Text>Url: </Text>
+        <Text style={{color: '#FFF'}}>Url: </Text>
         <TextInput
           style={{
             padding: 10,
             flex: 1,
-            backgroundColor: '#FFF',
+            backgroundColor: '#CCC',
             height: 50,
             borderRadius: 5,
           }}
-          onChangeText={text => setAddress(text)}
+          onChangeText={(text) => setAddress(text)}
           value={address}
         />
         <TouchableOpacity onPress={handleAddAddress}>
-          <Icon name="save" size={42} color="blue" />
+          <Icon name="save" size={50} color="blue" />
         </TouchableOpacity>
       </View>
     </View>
