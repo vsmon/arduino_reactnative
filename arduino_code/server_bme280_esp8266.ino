@@ -1,10 +1,13 @@
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
+#include <ESP8266HTTPClient.h>
 #include <ESP8266mDNS.h>
 #include <ArduinoJson.h>
 #include <Adafruit_BME280.h>
 #include <Adafruit_Sensor.h> //INCLUSÃO DE BIBLIOTECA
+
+#include <ESPDateTime.h>
 
 Adafruit_BME280 bmp; //OBJETO DO TIPO Adafruit_BMP280 (I2C)
 
@@ -16,10 +19,15 @@ double TEMPERATURE;
 double HUMIDITY;
 double PRESSURE;
 double ALTITUDE;
+int hour    = 1;
+int minutes = 1;
+int seconds = 1;
+
+#define SERVER_IP "telemetry1.herokuapp.com"
 
 #ifndef STASSID
-#define STASSID "" //SSID WIFI
-#define STAPSK  "" //PASS WIFI
+#define STASSID "TYPE_SSID"
+#define STAPSK  "TYPE_PASSWORD"
 #endif
 
 const char* ssid = STASSID;
@@ -47,7 +55,7 @@ void GetTemperature(){
  
     TEMPERATURE = bmp.readTemperature(); // chama método de leitura da classe dht,
                     
-    Serial.print(F("Temperatura: ")); //IMPRIME O TEXTO NO MONITOR SERIAL
+    Serial.print(F("Temperature: ")); //IMPRIME O TEXTO NO MONITOR SERIAL
     Serial.print(TEMPERATURE); //IMPRIME NO MONITOR SERIAL A TEMPERATURA
     Serial.println(" *C (Grau Celsius)"); //IMPRIME O TEXTO NO MONITOR SERIAL
 
@@ -62,9 +70,9 @@ void GetHumidity(){
 }
 
 void GetPressure(){
-    PRESSURE = bmp.readPressure();
+    PRESSURE = bmp.readPressure()/100;
   
-    Serial.print(F("Pressão: ")); //IMPRIME O TEXTO NO MONITOR SERIAL
+    Serial.print(F("Pressure: ")); //IMPRIME O TEXTO NO MONITOR SERIAL
     Serial.print(PRESSURE); //IMPRIME NO MONITOR SERIAL A PRESSÃO
     Serial.println(" Pa (Pascal)"); //IMPRIME O TEXTO NO MONITOR SERIAL
 }
@@ -77,30 +85,71 @@ void GetAltitude(){
     Serial.println(" m (Metros)"); //IMPRIME O TEXTO NO MONITOR SERIAL
 
 }
+
+int Post(){
+    //WiFiClientSecure *client = new WiFiClientSecure;
+    WiFiClient client;
+    HTTPClient http;
+
+    USE_SERIAL.print("[HTTP] begin...\n");
+    // configure traged server and url
+    http.begin(client,"http://" SERVER_IP "/telemetry/"); //HTTP
+    http.addHeader("Content-Type", "application/json");
+    Serial.println("http://" SERVER_IP "/telemetry/");
+    USE_SERIAL.print("[HTTP] POST...\n");
+    // start connection and send HTTP header and body
+    
+
+    //Encode JSON    
+    //Instantiate objects        
+    StaticJsonDocument<200> doc;
+    JsonObject object = doc.to<JsonObject>();
+    object["temperature"] = TEMPERATURE;
+    object["humidity"] = HUMIDITY;
+    object["pressure"] = PRESSURE;
+    object["altitude"] = ALTITUDE;
+
+    char json[300];
+    
+    serializeJson(doc, json);
+    int httpCode = http.POST(json);
+    
+    // httpCode will be negative on error
+    if (httpCode > 0) {
+      // HTTP header has been send and Server response header has been handled
+      USE_SERIAL.printf("[HTTP] POST... code: %d\n", httpCode);
+
+      // file found at server
+      if (httpCode == HTTP_CODE_OK) {
+        const String& payload = http.getString();
+        USE_SERIAL.println("received payload:\n<<");
+        USE_SERIAL.println(payload);
+        USE_SERIAL.println(">>");
+      }
+      
+    } else {
+      USE_SERIAL.printf("[HTTP] POST... failed, error: %s\n", http.errorToString(httpCode).c_str());      
+    }
+
+    http.end();
+    return httpCode;
+}
+
 void handleBody() { //Handler for the body path
   if (server.method() == HTTP_GET){
     //Encode JSON    
     //Instantiate objects        
-    StaticJsonBuffer<200> jsonBuffer;
-    JsonObject& root = jsonBuffer.createObject();
-    root["temperature"] = TEMPERATURE;
-    root["humidity"] = HUMIDITY;
-    root["pressure"] = PRESSURE;
-    root["altitude"] = ALTITUDE;
-    root["status_led"] = !digitalRead(LED);
-
-    char JSONmessageBuffer[300];
-    root.prettyPrintTo(JSONmessageBuffer, sizeof(JSONmessageBuffer));
-    
-//      String message = "{\n";
-//             message += "'data':\n";
-//             message += JSONmessageBuffer;
-//             message += "}\n";
-
-      String message = JSONmessageBuffer;
- 
-      server.send(200, "text/json", message);
-      Serial.println(message);
+    StaticJsonDocument<200> doc;
+    JsonObject object = doc.to<JsonObject>();
+    object["temperature"] = TEMPERATURE;
+    object["humidity"] = HUMIDITY;
+    object["pressure"] = PRESSURE;
+    object["altitude"] = ALTITUDE;
+    object["status_led"] = !digitalRead(LED);
+    char json[300];
+    serializeJson(doc,json);     
+    server.send(200, "text/json", json);
+    Serial.println(json);
   }
   if(server.method() == HTTP_POST){
     if (server.hasArg("plain")== false){ //Check if body received
@@ -113,16 +162,26 @@ void handleBody() { //Handler for the body path
       String message = "status:\n";
              message += server.arg("plain");
              message += "\n";
+      String body = server.arg("plain");             
 
-      StaticJsonBuffer<200> newBuffer;
-      JsonObject& newjson = newBuffer.parseObject(server.arg("plain"));  
-
-      const int STATUS_LED = newjson["status_led"];
+      StaticJsonDocument<200> doc;                
+      
+      deserializeJson(doc, body);
+      
+      const int STATUS_LED = doc["status_led"];
+      const bool SAVE_DB = doc["save_db"];
+      
       Serial.println("Status Led recebido: " + STATUS_LED);
+      Serial.println("Comando recebido: " + SAVE_DB);
+      
      if(STATUS_LED == 1){          
         digitalWrite(LED, LOW);
      }else{
         digitalWrite(LED, HIGH);
+     }
+
+     if(SAVE_DB == true){
+      Post();
      }
                       
       
@@ -131,11 +190,21 @@ void handleBody() { //Handler for the body path
   }
   
 }
+
+void setupDateTime(){
+  DateTime.setTimeZone(3);
+  DateTime.begin();
+  if(!DateTime.isTimeValid()){
+    Serial.println("Failed to get time from server.");
+  }
+}
+
 void setup(void) {
   pinMode(LED, OUTPUT);
   Serial.begin(115200);
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
+  WiFi.setSleepMode(WIFI_NONE_SLEEP);
   Serial.println("");
 
   if(!bmp.begin(0x76)){ //SE O SENSOR NÃO FOR INICIALIZADO NO ENDEREÇO I2C 0x76, FAZ
@@ -154,6 +223,8 @@ void setup(void) {
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
 
+  setupDateTime();
+  
   if (MDNS.begin("esp8266")) {
     Serial.println("MDNS responder started");
   }
@@ -166,13 +237,45 @@ void setup(void) {
 
   server.begin();
   Serial.println("HTTP server started");
+  digitalWrite(LED, HIGH);
+  
 }
 
 void loop(void) {
+  // wait for WiFi connection
+  if ((WiFi.status() == WL_CONNECTED)) {
+    DateTime.begin();    
     GetTemperature();
     GetHumidity();
     GetPressure();
-    GetAltitude();
-  server.handleClient();
-  MDNS.update();
+    GetAltitude();  
+    hour    = DateTime.getParts().getHours();
+    minutes = DateTime.getParts().getMinutes();  
+    seconds = DateTime.getParts().getSeconds();
+    Serial.printf("Hour: %d\n", hour);
+    Serial.printf("Minutes: %d\n", minutes);
+    Serial.printf("Seconds: %d\n", seconds);
+    Serial.printf("WIFI STATUS: %d\n", WiFi.status());
+    
+    if(minutes == 0 && seconds == 1 /*(minutes == 1 && seconds == 0) || (minutes == 30 && seconds == 0)*/){
+      digitalWrite(LED, LOW);
+      Serial.println("----------------------------------------Post executed--------------------------------------------------------");      
+      
+      int httpCode = -1;
+      while(httpCode != 200 && WiFi.status() == WL_CONNECTED){
+        httpCode = Post();
+        Serial.printf("-------Dentro while------------- %d\n", httpCode);
+        delay(1000);
+      }
+      Serial.printf("Meu log: %d\n", httpCode);      
+    }
+    
+    digitalWrite(LED, HIGH);
+    server.handleClient();
+    MDNS.update();    
+  }else{
+    Serial.printf("Not connected: %d\n", WiFi.status());
+    ESP.restart();
+  }
+  delay(1000);
 }
