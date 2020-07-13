@@ -43,16 +43,53 @@ export default function Home({navigation}) {
     loadData();
   }, []);
 
+  async function getDataInternalAddress() {
+    try {
+      const config = await Realm.objects('Config');
+
+      const internalAddress = config.filtered('name = "Server Internal Url"')[0]
+        .url;
+
+      const response = await api.get('data', {baseURL: internalAddress});
+
+      return response;
+    } catch (error) {
+      return {
+        error: `Ocorreu um erro na conexao`,
+      };
+    }
+  }
+  async function getDataExternalAddress() {
+    try {
+      const config = await Realm.objects('Config');
+
+      const externalAddress = config.filtered('name = "Server External Url"')[0]
+        .url;
+
+      const response = await api.get('data', {baseURL: externalAddress});
+
+      return response;
+    } catch (error) {
+      return {
+        error: `Ocorreu um erro na conexao`,
+      };
+    }
+  }
   async function fetchData() {
     try {
       setRefresh(true);
-      const config = await Realm.objects('Config');
-      let url = '';
-      config.map((item) => {
-        url = item.url;
-      });
 
-      const response = await api.get(`data`, {baseURL: url});
+      let response = new Object();
+
+      response = await getDataExternalAddress();
+
+      if (response.error) {
+        response = await getDataInternalAddress();
+
+        if (response.error) {
+          throw new Error('Ocorreu um erro na conexao com servidor.');
+        }
+      }
 
       setNewMeasures(response.data);
 
@@ -87,7 +124,7 @@ export default function Home({navigation}) {
       let date = [];
       setRefresh(true);
       const data = Realm.objects('Data');
-      data.map((item) => {
+      data.map(item => {
         temperature.push(item.temperature);
         humidity.push(item.humidity);
         pressure.push(item.pressure);
@@ -170,7 +207,7 @@ export default function Home({navigation}) {
                   fontSize: 10,
                 }}
                 numberOfTicks={10}
-                formatLabel={(value) => `${value}ºC`}
+                formatLabel={value => `${value}ºC`}
               />
               <LineChart
                 style={{flex: 1, marginLeft: 16}}
@@ -205,7 +242,7 @@ export default function Home({navigation}) {
                   fontSize: 10,
                 }}
                 numberOfTicks={10}
-                formatLabel={(value) => `${value}%`}
+                formatLabel={value => `${value}%`}
               />
               <LineChart
                 style={{flex: 1, marginLeft: 16}}
@@ -230,7 +267,7 @@ export default function Home({navigation}) {
                   fontSize: 10,
                 }}
                 numberOfTicks={10}
-                formatLabel={(value) => `${value}hPa`}
+                formatLabel={value => `${value}hPa`}
               />
               <LineChart
                 style={{flex: 1, marginLeft: 16}}
@@ -255,7 +292,7 @@ export default function Home({navigation}) {
                   fontSize: 10,
                 }}
                 numberOfTicks={10}
-                formatLabel={(value) => `${value}Mts`}
+                formatLabel={value => `${value}Mts`}
               />
               <LineChart
                 style={{flex: 1, marginLeft: 16}}

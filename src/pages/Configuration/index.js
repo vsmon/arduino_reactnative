@@ -2,9 +2,11 @@ import React, {useState, useEffect} from 'react';
 import {View, Text, Button, TextInput, TouchableOpacity} from 'react-native';
 import Realm from '../../schemas';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import api from '../../services/api';
 
 export default function Configuration({navigation}) {
-  const [address, setAddress] = useState('');
+  const [internalAddress, setInternalAddress] = useState('');
+  const [externalAddress, setExternalAddress] = useState('');
   const [data, setData] = useState([]);
   useEffect(() => {
     loadConfig();
@@ -13,23 +15,27 @@ export default function Configuration({navigation}) {
     try {
       const config = await Realm.objects('Config');
       if (config) {
-        setAddress(config[0].url);
+        setInternalAddress(
+          config.filtered('name = "Server Internal Url"')[0].url,
+        );
+        setExternalAddress(
+          config.filtered('name = "Server External Url"')[0].url,
+        );
       }
     } catch (error) {
       alert(error);
     }
   }
-  async function handleAddAddress() {
+  async function handleAddInternalAddress() {
     try {
       const config = await Realm.objects('Config');
-
       await Realm.write(async () => {
-        await Realm.delete(config);
+        await Realm.delete(config.filtered('name = "Server Internal Url"'));
       });
       await Realm.write(async () => {
         await Realm.create('Config', {
-          name: 'Server Url',
-          url: address,
+          name: 'Server Internal Url',
+          url: internalAddress,
         });
       });
 
@@ -38,7 +44,40 @@ export default function Configuration({navigation}) {
       alert(error);
     }
   }
+  async function handleAddExternalAddress() {
+    try {
+      const config = await Realm.objects('Config');
 
+      await Realm.write(async () => {
+        await Realm.delete(config.filtered('name = "Server External Url"'));
+      });
+      await Realm.write(async () => {
+        await Realm.create('Config', {
+          name: 'Server External Url',
+          url: externalAddress,
+        });
+      });
+
+      alert('Salvo com sucesso');
+    } catch (error) {
+      alert(error);
+    }
+  }
+  async function getExternalAddress() {
+    try {
+      const {
+        data: {externalIp: externalIpAddress},
+      } = await api.get('externalip', {
+        baseURL: 'http://telemetry1.herokuapp.com/',
+      });
+      console.log(externalIpAddress);
+      setExternalAddress(`http://${externalIpAddress}:3001`);
+    } catch (error) {
+      return {
+        error: `Ocorreu um erro na conexao`,
+      };
+    }
+  }
   return (
     <View style={{backgroundColor: '#000', flex: 1}}>
       <TouchableOpacity onPress={() => navigation.navigate('Home')}>
@@ -48,7 +87,7 @@ export default function Configuration({navigation}) {
         <Text style={{color: '#FFF'}}>Settings</Text>
       </View>
       <View style={{flexDirection: 'row', padding: 10, alignItems: 'center'}}>
-        <Text style={{color: '#FFF'}}>Url: </Text>
+        <Text style={{color: '#FFF'}}>Internal Url: </Text>
         <TextInput
           style={{
             padding: 10,
@@ -57,10 +96,30 @@ export default function Configuration({navigation}) {
             height: 50,
             borderRadius: 5,
           }}
-          onChangeText={(text) => setAddress(text)}
-          value={address}
+          onChangeText={text => setInternalAddress(text)}
+          value={internalAddress}
         />
-        <TouchableOpacity onPress={handleAddAddress}>
+        <TouchableOpacity onPress={handleAddInternalAddress}>
+          <Icon name="save" size={50} color="blue" />
+        </TouchableOpacity>
+      </View>
+      <View style={{flexDirection: 'row', padding: 10, alignItems: 'center'}}>
+        <Text style={{color: '#FFF'}}>External Url: </Text>
+        <TextInput
+          style={{
+            padding: 10,
+            flex: 1,
+            backgroundColor: '#CCC',
+            height: 50,
+            borderRadius: 5,
+          }}
+          onChangeText={text => setExternalAddress(text)}
+          value={externalAddress}
+        />
+        <TouchableOpacity onPress={getExternalAddress}>
+          <Icon name="refresh" size={50} color="blue" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handleAddExternalAddress}>
           <Icon name="save" size={50} color="blue" />
         </TouchableOpacity>
       </View>
