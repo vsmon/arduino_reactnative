@@ -8,6 +8,27 @@ const Config = {
   },
 };
 
+const ExternalUrl = {
+  name: 'ExternalUrl',
+  properties: {
+    url: 'string',
+  },
+};
+
+const InternallUrl = {
+  name: 'InternallUrl',
+  properties: {
+    url: 'string',
+  },
+};
+
+const Token = {
+  name: 'Token',
+  properties: {
+    token: 'string',
+  },
+};
+
 const Data = {
   name: 'Data',
   primaryKey: 'id',
@@ -21,6 +42,8 @@ const Data = {
   },
 };
 
-const realm = new Realm({schema: [Config, Data]});
+const realm = new Realm({
+  schema: [Config, ExternalUrl, InternallUrl, Token, Data],
+});
 
 export default realm;
