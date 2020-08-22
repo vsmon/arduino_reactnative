@@ -92,7 +92,7 @@ export default function Configuration({navigation}) {
       const {
         data: {externalIp: externalIpAddress},
       } = await api.get('externalip', {
-        baseURL: 'http://telemetry1.herokuapp.com/',
+        baseURL: 'http://telemetry-com-br.umbler.net/',
         params: {
           token,
         },
