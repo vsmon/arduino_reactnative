@@ -92,7 +92,7 @@ export default function Configuration({navigation}) {
       const {
         data: {externalIp: externalIpAddress},
       } = await api.get('externalip', {
-        baseURL: 'http://telemetry-com-br.umbler.net/',
+        baseURL: 'https://telemetry1.herokuapp.com/',
         params: {
           token,
         },
@@ -105,6 +105,18 @@ export default function Configuration({navigation}) {
     }
   }
 
+  async function restartArduino() {
+    try {
+      const config = await Realm.objects('Config');
+      const token = config.filtered('name="Token"')[0].url;
+      await api.post('data', JSON.stringify({restart: true}), token);
+      alert('Comando de restart enviado.');
+    } catch (error) {
+      console.log(error);
+      alert(error);
+    }
+  }
+
   return (
     <View style={{backgroundColor: '#000', flex: 1}}>
       <TouchableOpacity onPress={() => navigation.navigate('Home')}>
@@ -113,58 +125,110 @@ export default function Configuration({navigation}) {
       <View style={{alignItems: 'center'}}>
         <Text style={{color: '#FFF'}}>Settings</Text>
       </View>
-      <View style={{flexDirection: 'row', padding: 10, alignItems: 'center'}}>
-        <Text style={{color: '#FFF'}}>Internal Url: </Text>
-        <TextInput
+      <View
+        style={{
+          flexDirection: 'row',
+          padding: 10,
+          justifyContent: 'space-between',
+        }}>
+        <View
           style={{
-            padding: 10,
+            flexDirection: 'column',
+            justifyContent: 'center',
             flex: 1,
-            backgroundColor: '#CCC',
-            height: 50,
-            borderRadius: 5,
-          }}
-          onChangeText={text => setInternalAddress(text)}
-          value={internalAddress}
-        />
-        <TouchableOpacity onPress={handleAddInternalAddress}>
+          }}>
+          <Text style={{color: '#FFF'}}>Internal Url: </Text>
+          <TextInput
+            style={{
+              padding: 10,
+              backgroundColor: '#CCC',
+              height: 50,
+              borderRadius: 5,
+            }}
+            onChangeText={text => setInternalAddress(text)}
+            value={internalAddress}
+          />
+        </View>
+        <TouchableOpacity
+          style={{alignSelf: 'flex-end'}}
+          onPress={handleAddInternalAddress}>
           <Icon name="save" size={50} color="blue" />
         </TouchableOpacity>
       </View>
-      <View style={{flexDirection: 'row', padding: 10, alignItems: 'center'}}>
-        <Text style={{color: '#FFF'}}>External Url: </Text>
-        <TextInput
+      <View
+        style={{
+          flexDirection: 'row',
+          padding: 10,
+          alignItems: 'center',
+        }}>
+        <View
           style={{
-            padding: 10,
+            flexDirection: 'column',
+            justifyContent: 'center',
             flex: 1,
-            backgroundColor: '#CCC',
-            height: 50,
-            borderRadius: 5,
-          }}
-          onChangeText={text => setExternalAddress(text)}
-          value={externalAddress}
-        />
-        <TouchableOpacity onPress={getExternalAddress}>
+          }}>
+          <Text style={{color: '#FFF'}}>External Url: </Text>
+          <TextInput
+            style={{
+              padding: 10,
+              backgroundColor: '#CCC',
+              height: 50,
+              borderRadius: 5,
+            }}
+            onChangeText={text => setExternalAddress(text)}
+            value={externalAddress}
+          />
+        </View>
+        <TouchableOpacity
+          style={{alignSelf: 'flex-end'}}
+          onPress={getExternalAddress}>
           <Icon name="refresh" size={50} color="blue" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={handleAddExternalAddress}>
+        <TouchableOpacity
+          style={{alignSelf: 'flex-end'}}
+          onPress={handleAddExternalAddress}>
           <Icon name="save" size={50} color="blue" />
         </TouchableOpacity>
       </View>
       <View style={{flexDirection: 'row', padding: 10, alignItems: 'center'}}>
-        <Text style={{color: '#FFF'}}>Token: </Text>
-        <TextInput
+        <View
           style={{
-            padding: 10,
+            flexDirection: 'column',
+            justifyContent: 'center',
             flex: 1,
-            backgroundColor: '#CCC',
-            height: 50,
-            borderRadius: 5,
-          }}
-          onChangeText={text => setToken(text)}
-          value={token}
-        />
-        <TouchableOpacity onPress={handleAddToken}>
+          }}>
+          <Text style={{color: '#FFF'}}>Token: </Text>
+          <TextInput
+            style={{
+              padding: 10,
+              backgroundColor: '#CCC',
+              height: 50,
+              borderRadius: 5,
+            }}
+            onChangeText={text => setToken(text)}
+            value={token}
+          />
+        </View>
+        <TouchableOpacity
+          style={{alignSelf: 'flex-end'}}
+          onPress={handleAddToken}>
           <Icon name="save" size={50} color="blue" />
+        </TouchableOpacity>
+      </View>
+      <View style={{flexDirection: 'row'}}>
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            backgroundColor: 'blue',
+            alignSelf: 'flex-end',
+            borderRadius: 5,
+            justifyContent: 'center',
+            alignItems: 'center',
+            margin: 10,
+          }}
+          onPress={restartArduino}>
+          <Text style={{color: 'white'}}>Restart arduino</Text>
+          <Icon name="refresh" size={50} color="white" />
         </TouchableOpacity>
       </View>
     </View>

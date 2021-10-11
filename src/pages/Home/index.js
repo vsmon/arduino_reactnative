@@ -16,16 +16,18 @@ import {
   Grid,
   YAxis,
   XAxis,
+  Path,
 } from 'react-native-svg-charts';
 import * as shape from 'd3-shape';
 import {format, getSeconds} from 'date-fns';
 import {Svg} from 'react-native-svg';
 
-import {Container, MeasureText} from './styles';
+import {Container, MeasureText, StyledActivityIndicator} from './styles';
 
 import api from '../../services/api';
 import axios from 'axios';
 import Realm from '../../schemas';
+import {valueToNode} from '@babel/types';
 
 export default function Home({navigation}) {
   const [address, setAddress] = useState('http://192.168.0.40:3001');
@@ -111,6 +113,7 @@ export default function Home({navigation}) {
           date: new Date(),
         });
       });
+      loadData();
     } catch (error) {
       alert(error);
     }
@@ -181,7 +184,12 @@ export default function Home({navigation}) {
 
   return (
     <Container>
-      <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          paddingTop: 30,
+        }}>
         <TouchableOpacity onPress={clear}>
           <Icon name="delete-sweep" size={35} color="blue" />
         </TouchableOpacity>
@@ -197,7 +205,14 @@ export default function Home({navigation}) {
             <RefreshControl refreshing={refresh} onRefresh={handleRefresh} />
           }>
           <View>
-            <MeasureText>{newMeasures.temperature}ºC</MeasureText>
+            {!newMeasures.temperature ? (
+              <StyledActivityIndicator />
+            ) : (
+              <MeasureText color="rgb(255, 255, 0)">
+                Temperature: {newMeasures.temperature}ºC
+              </MeasureText>
+            )}
+
             <View style={{height: 200, flexDirection: 'row'}}>
               <YAxis
                 data={temperature}
@@ -223,6 +238,7 @@ export default function Home({navigation}) {
                 />
               </LineChart>
             </View>
+
             {/* <XAxis
               style={{marginHorizontal: 50}}
               data={date}
@@ -232,7 +248,13 @@ export default function Home({navigation}) {
               numberOfTicks={10}
             /> */}
 
-            <MeasureText>Humidity: {newMeasures.humidity}%</MeasureText>
+            {!newMeasures.humidity ? (
+              <StyledActivityIndicator />
+            ) : (
+              <MeasureText color="rgb(0, 255, 0)">
+                Humidity: {newMeasures.humidity}%
+              </MeasureText>
+            )}
             <View style={{height: 200, flexDirection: 'row'}}>
               <YAxis
                 data={humidity}
@@ -257,7 +279,13 @@ export default function Home({navigation}) {
               </LineChart>
             </View>
 
-            <MeasureText>Pressure: {newMeasures.pressure}hPa</MeasureText>
+            {!newMeasures.pressure ? (
+              <StyledActivityIndicator />
+            ) : (
+              <MeasureText color="rgb(255, 0, 0)">
+                Pressure: {newMeasures.pressure}hPa
+              </MeasureText>
+            )}
             <View style={{height: 200, flexDirection: 'row'}}>
               <YAxis
                 data={pressure}
@@ -282,7 +310,13 @@ export default function Home({navigation}) {
               </LineChart>
             </View>
 
-            <MeasureText>Altitude: {newMeasures.altitude}Mts</MeasureText>
+            {!newMeasures.altitude ? (
+              <StyledActivityIndicator />
+            ) : (
+              <MeasureText color="rgb(255, 153, 51)">
+                Altitude: {newMeasures.altitude}Mts
+              </MeasureText>
+            )}
             <View style={{height: 200, flexDirection: 'row'}}>
               <YAxis
                 data={altitude}
