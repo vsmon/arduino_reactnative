@@ -1,5 +1,5 @@
 import PushNotificationIOS from '@react-native-community/push-notification-ios';
-import PushNotification from 'react-native-push-notification';
+import PushNotification, {Importance} from 'react-native-push-notification';
 
 // Must be outside of any component LifeCycle (such as `componentDidMount`).
 PushNotification.configure({
@@ -7,17 +7,24 @@ PushNotification.configure({
   onRegister: function(token) {
     console.log('TOKEN:', token);
     PushNotification.subscribeToTopic('monitor');
+
+    PushNotification.createChannel({
+      channelId: 'monitor',
+      channelName: 'Monitor Temperatura',
+      importance: Importance.HIGH
+    },(create)=>console.log(`Create channel is ${create}`))
   },
 
   // (required) Called when a remote is received or opened, or local notification is opened
   onNotification: function(notification) {
     console.log('NOTIFICATION:', notification);
-
-    PushNotification.localNotification({
-      channelId: 1,
-      title: notification.title,
-      message: notification.message,
-    });
+    /* Process the notification firebase */
+      PushNotification.localNotification({
+        channelId: 'monitor',
+        title: notification.data.title,
+        message: notification.data.body,
+      });
+    
     // process the notification
 
     // (required) Called when a remote is received or opened, or local notification is opened
