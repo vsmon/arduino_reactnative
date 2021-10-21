@@ -1,33 +1,18 @@
 import React, {useState, useEffect} from 'react';
 import {
   View,
-  Text,
-  Button,
-  FlatList,
   ScrollView,
   RefreshControl,
   TouchableOpacity,
   Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import {
-  LineChart,
-  AreaChart,
-  Grid,
-  YAxis,
-  XAxis,
-  Path,
-} from 'react-native-svg-charts';
-import * as shape from 'd3-shape';
-import {format, getSeconds} from 'date-fns';
-import {Svg} from 'react-native-svg';
+import {LineChart, Grid, YAxis} from 'react-native-svg-charts';
 
 import {Container, MeasureText, StyledActivityIndicator} from './styles';
 
 import api from '../../services/api';
-import axios from 'axios';
 import Realm from '../../schemas';
-import {valueToNode} from '@babel/types';
 
 export default function Home({navigation}) {
   const [address, setAddress] = useState('http://192.168.0.40:3001');
