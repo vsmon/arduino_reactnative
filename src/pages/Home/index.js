@@ -42,7 +42,7 @@ export default function Home({navigation}) {
       return response;
     } catch (error) {
       return {
-        error: `Ocorreu um erro na conexao`,
+        error: `Ocorreu um erro na conexao ${error}`,
       };
     }
   }
@@ -58,7 +58,7 @@ export default function Home({navigation}) {
       return response;
     } catch (error) {
       return {
-        error: `Ocorreu um erro na conexao`,
+        error: `Ocorreu um erro na conexao ${error}`,
       };
     }
   }
@@ -74,7 +74,9 @@ export default function Home({navigation}) {
         response = await getDataInternalAddress();
 
         if (response.error) {
-          throw new Error('Ocorreu um erro na conexao com servidor.');
+          throw new Error(
+            `Ocorreu um erro na conexao com servidor. ${response.error}`,
+          );
         }
       }
 

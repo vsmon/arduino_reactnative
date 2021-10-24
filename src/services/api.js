@@ -11,6 +11,10 @@ async function getAddress() {
 
 const api = axios.create({
   baseURL: 'http://192.168.0.40:3001',
+  headers: {
+    'Content-Type': 'application/x-www-form-urlencoded',
+    Accept: 'application/json',
+  },
 });
 
 export default api;

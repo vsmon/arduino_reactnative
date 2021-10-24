@@ -6,6 +6,8 @@ PushNotification.createChannel(
     channelId: 'monitor',
     channelName: 'Monitor Temperatura',
     importance: Importance.HIGH,
+    playSound: true,
+    vibrate: true,
   },
   create => console.log(`Create channel is ${create}`),
 );
@@ -15,6 +17,9 @@ PushNotification.configure({
   onRegister: function(token) {
     console.log('TOKEN:', token);
     PushNotification.subscribeToTopic('monitor');
+    PushNotification.getChannels(function(channel_ids) {
+      console.log(channel_ids); // ['channel_id_1']
+    });
   },
 
   // (required) Called when a remote is received or opened, or local notification is opened
@@ -25,10 +30,13 @@ PushNotification.configure({
       channelId: 'monitor',
       title: notification.data.title,
       message: notification.data.body,
-      largeIcon: '',
       showWhen: true,
       when: new Date().getTime(),
-      //smallIcon: 'ic_launcher',
+      largeIcon: '',
+      smallIcon: 'ic_notification',
+      priority: 'high',
+      playSound: true,
+      //color: 'red',
     });
 
     // process the notification

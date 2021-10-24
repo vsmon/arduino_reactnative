@@ -5,7 +5,9 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import api from '../../services/api';
 
 export default function Configuration({navigation}) {
-  const [internalAddress, setInternalAddress] = useState('');
+  const [internalAddress, setInternalAddress] = useState(
+    'http://192.168.0.40:3001',
+  );
   const [externalAddress, setExternalAddress] = useState('');
   const [token, setToken] = useState('');
   const [data, setData] = useState([]);
