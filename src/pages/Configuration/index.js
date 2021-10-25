@@ -1,5 +1,12 @@
 import React, {useState, useEffect} from 'react';
-import {View, Text, Button, TextInput, TouchableOpacity} from 'react-native';
+import {
+  View,
+  Text,
+  Button,
+  TextInput,
+  TouchableOpacity,
+  BackHandler,
+} from 'react-native';
 import Realm from '../../schemas';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import api from '../../services/api';
@@ -121,9 +128,6 @@ export default function Configuration({navigation}) {
 
   return (
     <View style={{backgroundColor: '#000', flex: 1}}>
-      <TouchableOpacity onPress={() => navigation.navigate('Home')}>
-        <Icon name="arrow-back" size={40} color="blue" />
-      </TouchableOpacity>
       <View style={{alignItems: 'center'}}>
         <Text style={{color: '#FFF'}}>Settings</Text>
       </View>
