@@ -19,7 +19,7 @@ export const StyledActivityIndicator = styled.ActivityIndicator.attrs(
 )`
   font-size: 36px;
   color: #0066ff;
-  justify-content: flex-start;
-  align-items: flex-start;
-  padding: 20px;
+  //justify-content: flex-start;
+  //align-items: flex-start;
+  //padding: 20px;
 `;

@@ -192,14 +192,15 @@ export default function Home({navigation}) {
             <RefreshControl refreshing={refresh} onRefresh={handleRefresh} />
           }>
           <View>
-            {!newMeasures.temperature ? (
-              <StyledActivityIndicator />
-            ) : (
-              <MeasureText color="rgb(255, 255, 0)">
-                Temperature: {newMeasures.temperature}ºC
-              </MeasureText>
-            )}
-
+            <MeasureText color="rgb(255, 255, 0)">
+              Temperature:{' '}
+              {!newMeasures.temperature ? (
+                <StyledActivityIndicator />
+              ) : (
+                newMeasures.temperature
+              )}
+              ºC
+            </MeasureText>
             <View style={{height: 200, flexDirection: 'row'}}>
               <YAxis
                 data={temperature}
@@ -235,13 +236,15 @@ export default function Home({navigation}) {
               numberOfTicks={10}
             /> */}
 
-            {!newMeasures.humidity ? (
-              <StyledActivityIndicator />
-            ) : (
-              <MeasureText color="rgb(0, 255, 0)">
-                Humidity: {newMeasures.humidity}%
-              </MeasureText>
-            )}
+            <MeasureText color="rgb(0, 255, 0)">
+              Humidity:{' '}
+              {!newMeasures.temperature ? (
+                <StyledActivityIndicator />
+              ) : (
+                newMeasures.humidity
+              )}
+              %
+            </MeasureText>
             <View style={{height: 200, flexDirection: 'row'}}>
               <YAxis
                 data={humidity}
@@ -266,13 +269,15 @@ export default function Home({navigation}) {
               </LineChart>
             </View>
 
-            {!newMeasures.pressure ? (
-              <StyledActivityIndicator />
-            ) : (
-              <MeasureText color="rgb(255, 0, 0)">
-                Pressure: {newMeasures.pressure}hPa
-              </MeasureText>
-            )}
+            <MeasureText color="rgb(255, 0, 0)">
+              Pressure:{' '}
+              {!newMeasures.temperature ? (
+                <StyledActivityIndicator />
+              ) : (
+                newMeasures.pressure
+              )}
+              hPa
+            </MeasureText>
             <View style={{height: 200, flexDirection: 'row'}}>
               <YAxis
                 data={pressure}
@@ -297,13 +302,16 @@ export default function Home({navigation}) {
               </LineChart>
             </View>
 
-            {!newMeasures.altitude ? (
-              <StyledActivityIndicator />
-            ) : (
-              <MeasureText color="rgb(255, 153, 51)">
-                Altitude: {newMeasures.altitude}Mts
-              </MeasureText>
-            )}
+            <MeasureText color="rgb(255, 153, 51)">
+              Altitude:{' '}
+              {!newMeasures.temperature ? (
+                <StyledActivityIndicator />
+              ) : (
+                newMeasures.altitude
+              )}
+              Mts
+            </MeasureText>
+
             <View style={{height: 200, flexDirection: 'row'}}>
               <YAxis
                 data={altitude}
