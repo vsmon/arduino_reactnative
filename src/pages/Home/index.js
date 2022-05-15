@@ -193,7 +193,7 @@ export default function Home({navigation}) {
           }>
           <View>
             <MeasureText color="rgb(255, 255, 0)">
-              Temperature:{' '}
+              Temperature:{'\n'}
               {!newMeasures.temperature ? (
                 <StyledActivityIndicator />
               ) : (
@@ -237,7 +237,7 @@ export default function Home({navigation}) {
             /> */}
 
             <MeasureText color="rgb(0, 255, 0)">
-              Humidity:{' '}
+              Humidity:{'\n'}
               {!newMeasures.temperature ? (
                 <StyledActivityIndicator />
               ) : (
@@ -270,7 +270,7 @@ export default function Home({navigation}) {
             </View>
 
             <MeasureText color="rgb(255, 0, 0)">
-              Pressure:{' '}
+              Pressure:{'\n'}
               {!newMeasures.temperature ? (
                 <StyledActivityIndicator />
               ) : (
@@ -303,7 +303,7 @@ export default function Home({navigation}) {
             </View>
 
             <MeasureText color="rgb(255, 153, 51)">
-              Altitude:{' '}
+              Altitude:{'\n'}
               {!newMeasures.temperature ? (
                 <StyledActivityIndicator />
               ) : (
