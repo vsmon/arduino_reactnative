@@ -5,11 +5,17 @@ import {
   Button,
   TextInput,
   TouchableOpacity,
-  BackHandler,
+  Modal,
+  TouchableHighlight,
+  KeyboardAvoidingView,
+  Dimensions,
 } from 'react-native';
 import Realm from '../../schemas';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import api from '../../services/api';
+
+import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
 
 export default function Configuration({navigation}) {
   const [internalAddress, setInternalAddress] = useState(
@@ -18,9 +24,13 @@ export default function Configuration({navigation}) {
   const [externalAddress, setExternalAddress] = useState('');
   const [token, setToken] = useState('');
   const [data, setData] = useState([]);
+  const [isVisibleLoginModal, setIsVisibleLoginModal] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   useEffect(() => {
     loadConfig();
   }, []);
+
   async function loadConfig() {
     try {
       const config = await Realm.objects('Config');
@@ -94,23 +104,32 @@ export default function Configuration({navigation}) {
       alert(error);
     }
   }
+
   async function getExternalAddress() {
+    const externalIp = await firestore()
+      .collection('ips')
+      .doc('external')
+      .get();
+
+    setExternalAddress(`http://${externalIp.data().ip}:3001`);
+
+    alert('Endereço Atualizado.');
+  }
+
+  async function getInternalAddress() {
     try {
-      const config = await Realm.objects('Config');
-      const token = config.filtered('name="Token"')[0].url;
-      const {
-        data: {externalIp: externalIpAddress},
-      } = await api.get('externalip', {
-        baseURL: 'https://telemetry1.herokuapp.com/',
-        params: {
-          token,
-        },
-      });
-      setExternalAddress(`http://${externalIpAddress}:3001`);
+      const internalIp = await firestore()
+        .collection('ips')
+        .doc('internal')
+        .get();
+      setInternalAddress(`http://${internalIp.data().ip}:3001`);
+
       alert('Endereço Atualizado.');
     } catch (error) {
-      console.log(error.response);
-      alert(error);
+      console.log('meu error====>', error);
+      if (error.toString().includes('permission-denied') === true) {
+        alert('Permissao Negada, verifique o token!');
+      }
     }
   }
 
@@ -126,8 +145,88 @@ export default function Configuration({navigation}) {
     }
   }
 
+  async function getAuth() {
+    try {
+      if (email !== '' && password !== '') {
+        const isAuth = await auth().signInWithEmailAndPassword(email, password);
+        console.log('dados auth', isAuth);
+        return true;
+      } else {
+        alert('Preencha os campos!');
+      }
+      return false;
+    } catch (error) {
+      alert(error);
+      return false;
+    }
+  }
+  async function handleRefreshIP() {
+    const isAuth = await getAuth();
+    console.log(isAuth);
+    if (isAuth) {
+      setIsVisibleLoginModal(false);
+      getInternalAddress();
+      getExternalAddress();
+    }
+  }
+
   return (
     <View style={{backgroundColor: '#000', flex: 1}}>
+      <Modal
+        visible={isVisibleLoginModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setIsVisibleLoginModal(!isVisibleLoginModal)}>
+        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+          <View style={styles.modal}>
+            <Text>Autenticação</Text>
+            <TextInput
+              style={{
+                padding: 10,
+                backgroundColor: '#CCC',
+                height: 50,
+                width: Dimensions.get('window').width - 50,
+                borderRadius: 5,
+                margin: 10,
+              }}
+              onChangeText={text => setEmail(text)}
+              value={email}
+              placeholder="Digite o email..."
+              keyboardType="email-address"
+            />
+            <TextInput
+              style={{
+                padding: 10,
+                backgroundColor: '#CCC',
+                height: 50,
+                width: Dimensions.get('window').width - 50,
+                borderRadius: 5,
+                margin: 5,
+              }}
+              placeholder="Digite a senha..."
+              onChangeText={text => setPassword(text)}
+              secureTextEntry={true}
+              value={password}
+            />
+            <View
+              style={{
+                flexDirection: 'row',
+              }}>
+              <TouchableHighlight style={{margin: 20}}>
+                <Button title="OK" onPress={handleRefreshIP} />
+              </TouchableHighlight>
+              <TouchableHighlight style={{margin: 20}}>
+                <Button
+                  title="Cancelar"
+                  onPress={() => {
+                    setIsVisibleLoginModal(false);
+                  }}
+                />
+              </TouchableHighlight>
+            </View>
+          </View>
+        </View>
+      </Modal>
       <View style={{alignItems: 'center'}}>
         <Text style={{color: '#FFF'}}>Settings</Text>
       </View>
@@ -155,6 +254,7 @@ export default function Configuration({navigation}) {
             value={internalAddress}
           />
         </View>
+
         <TouchableOpacity
           style={{alignSelf: 'flex-end'}}
           onPress={handleAddInternalAddress}>
@@ -185,11 +285,7 @@ export default function Configuration({navigation}) {
             value={externalAddress}
           />
         </View>
-        <TouchableOpacity
-          style={{alignSelf: 'flex-end'}}
-          onPress={getExternalAddress}>
-          <Icon name="refresh" size={50} color="blue" />
-        </TouchableOpacity>
+
         <TouchableOpacity
           style={{alignSelf: 'flex-end'}}
           onPress={handleAddExternalAddress}>
@@ -232,11 +328,43 @@ export default function Configuration({navigation}) {
             alignItems: 'center',
             margin: 10,
           }}
+          onPress={() => setIsVisibleLoginModal(true)}>
+          <Text style={{color: 'white'}}>Atualiza IPs</Text>
+          <Icon name="refresh" size={50} color="white" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            backgroundColor: 'blue',
+            alignSelf: 'flex-end',
+            borderRadius: 5,
+            justifyContent: 'center',
+            alignItems: 'center',
+            margin: 10,
+          }}
           onPress={restartArduino}>
           <Text style={{color: 'white'}}>Restart arduino</Text>
-          <Icon name="refresh" size={50} color="white" />
+          <Icon name="power" size={50} color="white" />
         </TouchableOpacity>
       </View>
     </View>
   );
 }
+
+const styles = StyleSheet({
+  modal: {
+    margin: 5,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 10,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+});
