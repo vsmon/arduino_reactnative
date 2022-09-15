@@ -9,7 +9,11 @@ import {
   TouchableHighlight,
   KeyboardAvoidingView,
   Dimensions,
+  StyleSheet,
+  Alert,
+  ToastAndroid,
 } from 'react-native';
+import Clipboard from '@react-native-community/clipboard';
 import Realm from '../../schemas';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import api from '../../services/api';
@@ -34,7 +38,7 @@ export default function Configuration({navigation}) {
   async function loadConfig() {
     try {
       const config = await Realm.objects('Config');
-      if (config) {
+      if (config !== undefined) {
         setInternalAddress(
           config.filtered('name = "Server Internal Url"')[0].url,
         );
@@ -44,7 +48,8 @@ export default function Configuration({navigation}) {
         setToken(config.filtered('name="Token"')[0].url);
       }
     } catch (error) {
-      alert(error);
+      console.log(error);
+      alert('Não há dados salvos');
     }
   }
   async function handleAddInternalAddress() {
@@ -106,14 +111,24 @@ export default function Configuration({navigation}) {
   }
 
   async function getExternalAddress() {
-    const externalIp = await firestore()
-      .collection('ips')
-      .doc('external')
-      .get();
+    try {
+      const externalIp = await firestore()
+        .collection('ips')
+        .doc('external')
+        .get();
 
-    setExternalAddress(`http://${externalIp.data().ip}:3001`);
-
-    alert('Endereço Atualizado.');
+      setExternalAddress(`http://${externalIp.data().ip}:3001`);
+    } catch (error) {
+      switch (error) {
+        case error.toString().includes('unavailable'):
+          alert('Serviço indisponível');
+          break;
+        case error.toString().includes('permission-denied'):
+          alert('Permissao Negada, verifique o token!');
+        default:
+          alert('Ocorreu um erro inesperado');
+      }
+    }
   }
 
   async function getInternalAddress() {
@@ -123,12 +138,16 @@ export default function Configuration({navigation}) {
         .doc('internal')
         .get();
       setInternalAddress(`http://${internalIp.data().ip}:3001`);
-
-      alert('Endereço Atualizado.');
     } catch (error) {
       console.log('meu error====>', error);
-      if (error.toString().includes('permission-denied') === true) {
-        alert('Permissao Negada, verifique o token!');
+      switch (error) {
+        case error.toString().includes('unavailable'):
+          alert('Serviço indisponível');
+          break;
+        case error.toString().includes('permission-denied'):
+          alert('Permissao Negada, verifique o token!');
+        default:
+          alert('Ocorreu um erro inesperado');
       }
     }
   }
@@ -143,6 +162,23 @@ export default function Configuration({navigation}) {
       console.log(error);
       alert(error);
     }
+  }
+
+  function handleRestartArduino() {
+    Alert.alert('Reiniciar Arduino', 'Deseja reiniciar o arduino?', [
+      {
+        text: 'OK',
+        onPress: () => {
+          restartArduino();
+        },
+        style: 'ok',
+      },
+      {
+        text: 'CANCELAR',
+        onPress: () => {},
+        style: 'cancel',
+      },
+    ]);
   }
 
   async function getAuth() {
@@ -167,7 +203,22 @@ export default function Configuration({navigation}) {
       setIsVisibleLoginModal(false);
       getInternalAddress();
       getExternalAddress();
+      alert('Endereço Atualizado.');
     }
+  }
+
+  function handleCopyToClipboardInternalAddress() {
+    Clipboard.setString(internalAddress);
+    showTost('Texto copiado para Área de transferência!');
+  }
+
+  function handleCopyToClipboardExternalAddress() {
+    Clipboard.setString(externalAddress);
+    showTost('Texto copiado para Área de transferência!');
+  }
+
+  function showTost(message) {
+    ToastAndroid.showWithGravity(message, ToastAndroid.SHORT, ToastAndroid.TOP);
   }
 
   return (
@@ -193,6 +244,7 @@ export default function Configuration({navigation}) {
               value={email}
               placeholder="Digite o email..."
               keyboardType="email-address"
+              autoFocus={true}
             />
             <TextInput
               style={{
@@ -243,16 +295,31 @@ export default function Configuration({navigation}) {
             flex: 1,
           }}>
           <Text style={{color: '#FFF'}}>Internal Url: </Text>
-          <TextInput
+          <View
             style={{
-              padding: 10,
-              backgroundColor: '#CCC',
+              flexDirection: 'row',
               height: 50,
               borderRadius: 5,
-            }}
-            onChangeText={text => setInternalAddress(text)}
-            value={internalAddress}
-          />
+              backgroundColor: '#CCC',
+            }}>
+            <TextInput
+              style={{
+                padding: 10,
+                backgroundColor: '#CCC',
+                height: 50,
+
+                borderRadius: 5,
+                flex: 1,
+              }}
+              onChangeText={text => setInternalAddress(text)}
+              value={internalAddress}
+            />
+            <TouchableOpacity
+              style={{alignSelf: 'center'}}
+              onPress={handleCopyToClipboardInternalAddress}>
+              <Icon name="content-copy" size={40} color="blue" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <TouchableOpacity
@@ -274,16 +341,30 @@ export default function Configuration({navigation}) {
             flex: 1,
           }}>
           <Text style={{color: '#FFF'}}>External Url: </Text>
-          <TextInput
+          <View
             style={{
-              padding: 10,
-              backgroundColor: '#CCC',
+              flexDirection: 'row',
               height: 50,
               borderRadius: 5,
-            }}
-            onChangeText={text => setExternalAddress(text)}
-            value={externalAddress}
-          />
+              backgroundColor: '#CCC',
+            }}>
+            <TextInput
+              style={{
+                padding: 10,
+                backgroundColor: '#CCC',
+                height: 50,
+                borderRadius: 5,
+                flex: 1,
+              }}
+              onChangeText={text => setExternalAddress(text)}
+              value={externalAddress}
+            />
+            <TouchableOpacity
+              style={{alignSelf: 'center'}}
+              onPress={handleCopyToClipboardExternalAddress}>
+              <Icon name="content-copy" size={40} color="blue" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <TouchableOpacity
@@ -342,7 +423,7 @@ export default function Configuration({navigation}) {
             alignItems: 'center',
             margin: 10,
           }}
-          onPress={restartArduino}>
+          onPress={handleRestartArduino}>
           <Text style={{color: 'white'}}>Restart arduino</Text>
           <Icon name="power" size={50} color="white" />
         </TouchableOpacity>
@@ -351,7 +432,7 @@ export default function Configuration({navigation}) {
   );
 }
 
-const styles = StyleSheet({
+const styles = StyleSheet.create({
   modal: {
     margin: 5,
     backgroundColor: 'white',
