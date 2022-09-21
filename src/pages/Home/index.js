@@ -68,10 +68,10 @@ export default function Home({navigation}) {
 
       let response = new Object();
 
-      response = await getDataExternalAddress();
+      response = await getDataInternalAddress();
 
       if (response.error) {
-        response = await getDataInternalAddress();
+        response = await getDataExternalAddress();
 
         if (response.error) {
           throw new Error(
@@ -114,7 +114,7 @@ export default function Home({navigation}) {
       let date = [];
       setRefresh(true);
       const data = Realm.objects('Data');
-      data.map(item => {
+      data.map((item) => {
         temperature.push(item.temperature);
         humidity.push(item.humidity);
         pressure.push(item.pressure);
@@ -210,7 +210,7 @@ export default function Home({navigation}) {
                   fontSize: 10,
                 }}
                 numberOfTicks={10}
-                formatLabel={value => `${value}ºC`}
+                formatLabel={(value) => `${value}ºC`}
               />
               <LineChart
                 style={{flex: 1, marginLeft: 16}}
@@ -254,7 +254,7 @@ export default function Home({navigation}) {
                   fontSize: 10,
                 }}
                 numberOfTicks={10}
-                formatLabel={value => `${value}%`}
+                formatLabel={(value) => `${value}%`}
               />
               <LineChart
                 style={{flex: 1, marginLeft: 16}}
@@ -287,7 +287,7 @@ export default function Home({navigation}) {
                   fontSize: 10,
                 }}
                 numberOfTicks={10}
-                formatLabel={value => `${value}hPa`}
+                formatLabel={(value) => `${value}hPa`}
               />
               <LineChart
                 style={{flex: 1, marginLeft: 16}}
@@ -321,7 +321,7 @@ export default function Home({navigation}) {
                   fontSize: 10,
                 }}
                 numberOfTicks={10}
-                formatLabel={value => `${value}Mts`}
+                formatLabel={(value) => `${value}Mts`}
               />
               <LineChart
                 style={{flex: 1, marginLeft: 16}}
