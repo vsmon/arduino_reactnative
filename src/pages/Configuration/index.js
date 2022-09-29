@@ -244,6 +244,9 @@ export default function Configuration({navigation}) {
               value={email}
               placeholder="Digite o email..."
               keyboardType="email-address"
+              textContentType="username"
+              autoComplete="username"
+              autoCapitalize="none"
               autoFocus={true}
             />
             <TextInput
@@ -258,6 +261,9 @@ export default function Configuration({navigation}) {
               placeholder="Digite a senha..."
               onChangeText={text => setPassword(text)}
               secureTextEntry={true}
+              textContentType="password"
+              autoComplete="password"
+              autoCapitalize="none"
               value={password}
             />
             <View
