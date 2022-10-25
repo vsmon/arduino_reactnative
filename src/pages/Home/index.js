@@ -14,6 +14,8 @@ import {Container, MeasureText, StyledActivityIndicator} from './styles';
 import api from '../../services/api';
 import Realm from '../../schemas';
 
+import Chart from '../../components/chart';
+
 export default function Home({navigation}) {
   const [address, setAddress] = useState('http://192.168.0.40:3001');
   const [measures, setMeasures] = useState([]);
@@ -22,7 +24,6 @@ export default function Home({navigation}) {
   const [humidity, setHumidity] = useState([]);
   const [pressure, setPressure] = useState([]);
   const [altitude, setAltitude] = useState([]);
-  const [date, setDate] = useState([]);
   const [refresh, setRefresh] = useState(false);
 
   useEffect(() => {
@@ -111,21 +112,22 @@ export default function Home({navigation}) {
       let humidity = [];
       let pressure = [];
       let altitude = [];
-      let date = [];
+
       setRefresh(true);
+
       const data = Realm.objects('Data');
-      data.map((item) => {
-        temperature.push(item.temperature);
-        humidity.push(item.humidity);
-        pressure.push(item.pressure);
-        altitude.push(item.altitude);
-        date.push(item.date.getHours());
+
+      data.map(item => {
+        temperature.push({x: new Date(item.date), y: item.temperature});
+        humidity.push({x: new Date(item.date), y: item.humidity});
+        pressure.push({x: new Date(item.date), y: item.pressure});
+        altitude.push({x: new Date(item.date), y: item.altitude});
       });
+
       setTemperature(temperature);
       setHumidity(humidity);
       setPressure(pressure);
       setAltitude(altitude);
-      setDate(date);
       setRefresh(false);
     } catch (error) {
       alert(error);
@@ -202,71 +204,28 @@ export default function Home({navigation}) {
               ºC
             </MeasureText>
             <View style={{height: 200, flexDirection: 'row'}}>
-              <YAxis
+              <Chart
                 data={temperature}
-                contentInset={{top: 20, bottom: 20}}
-                svg={{
-                  fill: 'grey',
-                  fontSize: 10,
-                }}
-                numberOfTicks={10}
-                formatLabel={(value) => `${value}ºC`}
+                symbol={'°C'}
+                lineColor={'rgb(255, 255, 0)'}
               />
-              <LineChart
-                style={{flex: 1, marginLeft: 16}}
-                data={temperature}
-                svg={{
-                  stroke: 'rgb(255, 255, 0)',
-                }}
-                contentInset={{top: 20, bottom: 20}}>
-                <Grid
-                  svg={{
-                    stroke: 'gray',
-                  }}
-                />
-              </LineChart>
             </View>
-
-            {/* <XAxis
-              style={{marginHorizontal: 50}}
-              data={date}
-              formatLabel={(value, index) => index}
-              contentInset={{left: 10, right: 0}}
-              svg={{fontSize: 15, fill: 'black'}}
-              numberOfTicks={10}
-            /> */}
 
             <MeasureText color="rgb(0, 255, 0)">
               Humidity:{'\n'}
               {!newMeasures.temperature ? (
                 <StyledActivityIndicator />
               ) : (
-                newMeasures.humidity
+                newMeasures.humidity.toFixed(2)
               )}
               %
             </MeasureText>
             <View style={{height: 200, flexDirection: 'row'}}>
-              <YAxis
+              <Chart
                 data={humidity}
-                contentInset={{top: 20, bottom: 20}}
-                svg={{
-                  fill: 'grey',
-                  fontSize: 10,
-                }}
-                numberOfTicks={10}
-                formatLabel={(value) => `${value}%`}
+                symbol={'%'}
+                lineColor={'rgb(0, 255, 0)'}
               />
-              <LineChart
-                style={{flex: 1, marginLeft: 16}}
-                data={humidity}
-                svg={{stroke: 'rgb(0, 255, 0)'}}
-                contentInset={{top: 20, bottom: 20}}>
-                <Grid
-                  svg={{
-                    stroke: 'gray',
-                  }}
-                />
-              </LineChart>
             </View>
 
             <MeasureText color="rgb(255, 0, 0)">
@@ -274,32 +233,16 @@ export default function Home({navigation}) {
               {!newMeasures.temperature ? (
                 <StyledActivityIndicator />
               ) : (
-                newMeasures.pressure
+                newMeasures.pressure.toFixed(2)
               )}
               hPa
             </MeasureText>
             <View style={{height: 200, flexDirection: 'row'}}>
-              <YAxis
+              <Chart
                 data={pressure}
-                contentInset={{top: 20, bottom: 20}}
-                svg={{
-                  fill: 'grey',
-                  fontSize: 10,
-                }}
-                numberOfTicks={10}
-                formatLabel={(value) => `${value}hPa`}
+                symbol={'hPa'}
+                lineColor={'rgb(255, 0, 0)'}
               />
-              <LineChart
-                style={{flex: 1, marginLeft: 16}}
-                data={pressure}
-                svg={{stroke: 'rgb(255, 0, 0)'}}
-                contentInset={{top: 20, bottom: 20}}>
-                <Grid
-                  svg={{
-                    stroke: 'gray',
-                  }}
-                />
-              </LineChart>
             </View>
 
             <MeasureText color="rgb(255, 153, 51)">
@@ -307,33 +250,17 @@ export default function Home({navigation}) {
               {!newMeasures.temperature ? (
                 <StyledActivityIndicator />
               ) : (
-                newMeasures.altitude
+                newMeasures.altitude.toFixed(2)
               )}
               Mts
             </MeasureText>
 
             <View style={{height: 200, flexDirection: 'row'}}>
-              <YAxis
+              <Chart
                 data={altitude}
-                contentInset={{top: 20, bottom: 20}}
-                svg={{
-                  fill: 'grey',
-                  fontSize: 10,
-                }}
-                numberOfTicks={10}
-                formatLabel={(value) => `${value}Mts`}
+                symbol={'Mts'}
+                lineColor={'rgb(255, 153, 51)'}
               />
-              <LineChart
-                style={{flex: 1, marginLeft: 16}}
-                data={altitude}
-                svg={{stroke: 'rgb(255, 153, 51)'}}
-                contentInset={{top: 20, bottom: 20}}>
-                <Grid
-                  svg={{
-                    stroke: 'gray',
-                  }}
-                />
-              </LineChart>
             </View>
           </View>
         </ScrollView>
