@@ -1,5 +1,5 @@
 import React from 'react';
-import {Dimensions} from 'react-native';
+import {Dimensions, View} from 'react-native';
 import {
   VictoryChart,
   VictoryVoronoiContainer,
@@ -12,48 +12,52 @@ import {
 export default function Chart({data, symbol, lineColor}) {
   VictoryTheme.material.axis.style.grid.stroke = '#CCC3';
   return (
-    <VictoryChart
-      height={250}
-      width={Dimensions.get('window').width - 1}
-      theme={VictoryTheme.material}
-      containerComponent={
-        <VictoryVoronoiContainer
-          labels={({datum}) =>
-            `${datum.y.toFixed(2)}${symbol}\n${datum.x.toLocaleString('pt-BR', {
-              timeZone: 'America/Sao_Paulo',
-            })}`
-          }
-          labelComponent={
-            <VictoryTooltip
-              centerOffset={{x: -25, y: -55}}
-              dy={-7}
-              constrainToVisibleArea
-              style={[
-                {fill: 'black', fontSize: 20, padding: 10},
-                {fill: 'green', fontFamily: 'monospace'},
-              ]}
-            />
-          }
-        />
-      }>
-      <VictoryLine
-        style={{
-          data: {
-            stroke: lineColor,
-            strokeWidth: 2, //({data}) => data.length,
-          },
+    <View>
+      <VictoryChart
+        height={250}
+        width={Dimensions.get('window').width}
+        theme={VictoryTheme.material}
+        containerComponent={
+          <VictoryVoronoiContainer
+            labels={({datum}) =>
+              `${datum.y.toFixed(2)}${symbol}\n${datum.x.toLocaleString(
+                'pt-BR',
+                {
+                  timeZone: 'America/Sao_Paulo',
+                },
+              )}`
+            }
+            labelComponent={
+              <VictoryTooltip
+                centerOffset={{x: -25, y: -55}}
+                dy={-7}
+                constrainToVisibleArea
+                style={[
+                  {fill: 'black', fontSize: 20, padding: 10},
+                  {fill: 'green', fontFamily: 'monospace'},
+                ]}
+              />
+            }
+          />
+        }>
+        <VictoryLine
+          style={{
+            data: {
+              stroke: lineColor,
+              strokeWidth: 2, //({data}) => data.length,
+            },
 
-          labels: {
-            fontSize: 15,
-            fill:
-              /* ({datum}) =>
+            labels: {
+              fontSize: 15,
+              fill:
+                /* ({datum}) =>
                         datum.x === 3 ? '#000000' : */ '#c43a31',
-          },
-        }}
-        data={data}
-        colorScale="red"
-      />
-      {/* <VictoryAxis
+            },
+          }}
+          data={data}
+          colorScale="red"
+        />
+        {/* <VictoryAxis
         dependentAxis
         //offsetY={100}
         tickFormat={tick => `${tick}`}
@@ -61,7 +65,8 @@ export default function Chart({data, symbol, lineColor}) {
           grid: {stroke: '#F4F5F7', strokeWidth: 0.2},
         }}
       /> */}
-    </VictoryChart>
+      </VictoryChart>
+    </View>
   );
 }
 

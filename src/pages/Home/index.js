@@ -9,7 +9,12 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {LineChart, Grid, YAxis} from 'react-native-svg-charts';
 
-import {Container, MeasureText, StyledActivityIndicator} from './styles';
+import {
+  Container,
+  MeasureText,
+  StyledActivityIndicator,
+  ChartContainer,
+} from './styles';
 
 import api from '../../services/api';
 import Realm from '../../schemas';
@@ -203,13 +208,13 @@ export default function Home({navigation}) {
               )}
               ºC
             </MeasureText>
-            <View style={{height: 200, flexDirection: 'row'}}>
+            <ChartContainer>
               <Chart
                 data={temperature}
                 symbol={'°C'}
                 lineColor={'rgb(255, 255, 0)'}
               />
-            </View>
+            </ChartContainer>
 
             <MeasureText color="rgb(0, 255, 0)">
               Humidity:{'\n'}
@@ -220,13 +225,13 @@ export default function Home({navigation}) {
               )}
               %
             </MeasureText>
-            <View style={{height: 200, flexDirection: 'row'}}>
+            <ChartContainer>
               <Chart
                 data={humidity}
                 symbol={'%'}
                 lineColor={'rgb(0, 255, 0)'}
               />
-            </View>
+            </ChartContainer>
 
             <MeasureText color="rgb(255, 0, 0)">
               Pressure:{'\n'}
@@ -237,13 +242,13 @@ export default function Home({navigation}) {
               )}
               hPa
             </MeasureText>
-            <View style={{height: 200, flexDirection: 'row'}}>
+            <ChartContainer>
               <Chart
                 data={pressure}
                 symbol={'hPa'}
                 lineColor={'rgb(255, 0, 0)'}
               />
-            </View>
+            </ChartContainer>
 
             <MeasureText color="rgb(255, 153, 51)">
               Altitude:{'\n'}
@@ -255,13 +260,13 @@ export default function Home({navigation}) {
               Mts
             </MeasureText>
 
-            <View style={{height: 200, flexDirection: 'row'}}>
+            <ChartContainer>
               <Chart
                 data={altitude}
                 symbol={'Mts'}
                 lineColor={'rgb(255, 153, 51)'}
               />
-            </View>
+            </ChartContainer>
           </View>
         </ScrollView>
       }

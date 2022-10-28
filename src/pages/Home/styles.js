@@ -11,7 +11,6 @@ export const MeasureText = styled.Text`
   color: ${props => props.color}; //#0066ff;
   justify-content: flex-start;
   align-items: flex-start;
-  padding: 20px;
 `;
 
 export const StyledActivityIndicator = styled.ActivityIndicator.attrs(
@@ -22,4 +21,9 @@ export const StyledActivityIndicator = styled.ActivityIndicator.attrs(
   //justify-content: flex-start;
   //align-items: flex-start;
   //padding: 20px;
+`;
+
+export const ChartContainer = styled.View`
+  height: 250px;
+  flex-direction: row;
 `;
