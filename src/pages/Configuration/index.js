@@ -31,6 +31,7 @@ export default function Configuration({navigation}) {
   const [isVisibleLoginModal, setIsVisibleLoginModal] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [statusDisplay, setStatusDisplay] = useState(-1);
   useEffect(() => {
     loadConfig();
   }, []);
@@ -46,6 +47,13 @@ export default function Configuration({navigation}) {
           config.filtered('name = "Server External Url"')[0].url,
         );
         setToken(config.filtered('name="Token"')[0].url);
+
+        const {
+          data: {status_display},
+        } = await api.get('data', {
+          baseURL: internalAddress,
+        });
+        setStatusDisplay(status_display);
       }
     } catch (error) {
       console.log(error);
@@ -219,6 +227,25 @@ export default function Configuration({navigation}) {
 
   function showTost(message) {
     ToastAndroid.showWithGravity(message, ToastAndroid.SHORT, ToastAndroid.TOP);
+  }
+
+  async function handleSwitchDisplay() {
+    try {
+      const {
+        data: {status_display},
+      } = await api.get('data', {
+        baseURL: internalAddress,
+      });
+      const resp = await api.post(
+        'data',
+        JSON.stringify({poweroff_display: !status_display}),
+        {baseURL: internalAddress},
+      );
+      //alert('Comando enviado.');
+      setStatusDisplay(!status_display);
+    } catch (error) {
+      alert('Erro ao enviar comando', error);
+    }
   }
 
   return (
@@ -432,6 +459,26 @@ export default function Configuration({navigation}) {
           onPress={handleRestartArduino}>
           <Text style={{color: 'white'}}>Restart arduino</Text>
           <Icon name="power" size={50} color="white" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            backgroundColor: 'blue',
+            alignSelf: 'flex-end',
+            borderRadius: 5,
+            justifyContent: 'center',
+            alignItems: 'center',
+            margin: 10,
+          }}
+          onPress={handleSwitchDisplay}>
+          <Text style={{color: statusDisplay ? 'white' : 'gray'}}>
+            On/Off Display
+          </Text>
+          <Icon
+            name="computer"
+            size={50}
+            color={statusDisplay ? 'white' : 'gray'}
+          />
         </TouchableOpacity>
       </View>
     </View>
