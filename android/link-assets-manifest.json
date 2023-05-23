@@ -1,0 +1,41 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "src/assets/fonts/digital-7 (italic).ttf",
+      "sha1": "ba2f68370fa15d2b855d2bf6851d21b13b70dc87"
+    },
+    {
+      "path": "src/assets/fonts/digital-7 (mono italic).ttf",
+      "sha1": "b44189e1acc6432ffff0a905711354067d5d5f46"
+    },
+    {
+      "path": "src/assets/fonts/digital-7 (mono).ttf",
+      "sha1": "dabe381cb194d25d64f7f32d8925c1509b95ec08"
+    },
+    {
+      "path": "src/assets/fonts/digital-7.ttf",
+      "sha1": "7e1cf55ecbeaaa82465624ffb32b54e85453325c"
+    },
+    {
+      "path": "src/assets/fonts/DsDigi.ttf",
+      "sha1": "1ce1ed312b41a237cb253c706290c0fd7287859d"
+    },
+    {
+      "path": "src/assets/fonts/DsDigib.ttf",
+      "sha1": "126da1a82a1491b962982cb0be5f3d8e0b23d077"
+    },
+    {
+      "path": "src/assets/fonts/DsDigii.ttf",
+      "sha1": "d12ff73c13a5346032cdd0c737f9ed27e693a6ff"
+    },
+    {
+      "path": "src/assets/fonts/DsDigit.ttf",
+      "sha1": "44b13f9de8eee6c1aee3601c1a7f6d662b401616"
+    },
+    {
+      "path": "src/assets/fonts/LeagueScript-Regular.ttf",
+      "sha1": "4189cd66c7eea936988306172eaf5cc1c211ae8b"
+    }
+  ]
+}

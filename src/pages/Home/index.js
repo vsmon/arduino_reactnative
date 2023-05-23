@@ -5,6 +5,7 @@ import {
   RefreshControl,
   TouchableOpacity,
   Alert,
+  Text,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {LineChart, Grid, YAxis} from 'react-native-svg-charts';
@@ -87,6 +88,7 @@ export default function Home({navigation}) {
       }
 
       setNewMeasures(response.data);
+      console.log(response.data);
 
       saveData(response.data);
       setRefresh(false);
@@ -183,6 +185,7 @@ export default function Home({navigation}) {
           flexDirection: 'row',
           justifyContent: 'space-between',
           paddingTop: 30,
+          paddingBottom: 20,
         }}>
         <TouchableOpacity onPress={clear}>
           <Icon name="delete-sweep" size={35} color="blue" />
@@ -204,7 +207,7 @@ export default function Home({navigation}) {
               {!newMeasures.temperature ? (
                 <StyledActivityIndicator />
               ) : (
-                newMeasures.temperature
+                newMeasures.temperature.toFixed(2)
               )}
               ºC
             </MeasureText>

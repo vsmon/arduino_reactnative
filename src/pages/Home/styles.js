@@ -11,6 +11,7 @@ export const MeasureText = styled.Text`
   color: ${props => props.color}; //#0066ff;
   justify-content: flex-start;
   align-items: flex-start;
+  font-family: digital-7;
 `;
 
 export const StyledActivityIndicator = styled.ActivityIndicator.attrs(
